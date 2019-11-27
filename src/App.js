@@ -31,10 +31,12 @@ class App extends React.Component {
       })
   }
 
+  //select a note
   selectNote = (note, index) => {
     this.setState({ selectedNoteIndex: index, selectedNote: note });
   }
 
+  //update a note
   noteUpdate = (id, noteObj) => {
     // console.log(id, noteObj);
     firebase
@@ -48,6 +50,7 @@ class App extends React.Component {
       });
   }
 
+  //create new note
   newNote = async (title) => {
     const note = {
       title: title,
@@ -70,6 +73,34 @@ class App extends React.Component {
       selectedNote: this.state.notes[newNoteIndex],
       selectedNoteIndex: newNoteIndex
     })
+  }
+
+  //delete note
+  deleteNote = async (note) => {
+    const noteIndex = this.state.notes.indexOf(note);
+    await this.setState({ notes: this.state.notes.filter(_note => _note !== note) })
+
+    if (this.state.selectedNoteIndex === noteIndex) {
+      this.setState({
+        selectedNoteIndex: null,
+        selectedNote: null
+      });
+    } else {
+      this.state.notes.length > 1 ?
+        this.selectNote(this.state.notes[this.state.selectedNoteIndex - 1], this.state.selectedNoteIndex - 1)
+        :
+        this.setState({
+          selectedNoteIndex: null,
+          selectedNote: null
+        })
+    }
+
+    // update fb db
+    firebase
+      .firestore()
+      .collection('notes')
+      .doc(note.id)
+      .delete();
   }
 
   render() {
